@@ -126,14 +126,14 @@ errorFlag handle(string line, opTab * opcodeTable, symbolTable * symboltable, in
 	return anError;
 }
 
-void handle2(string line, opTab * opcodeTable, symbolTable * symboltable, string & prevaddress, string & address, string & opcode, string & operand, string & textrecord, ofstream & objectfile, bool & written)
+bool handle2(string line, opTab * opcodeTable, symbolTable * symboltable, string & prevaddress, string & address, string & opcode, string & operand, string & textrecord, ofstream & objectfile, bool & written, string objectcode)
 {
 
 	string BYTE = "BYTE";
 	string WORD = "WORD";
-	string objectcode = "";
 	string RESW = "RESW";
 	string RESB = "RESB";
+	objectcode = "";
 	string operandAddress;
 
 	if (opcodeTable->isInTableByValue(opcode))
@@ -153,9 +153,13 @@ void handle2(string line, opTab * opcodeTable, symbolTable * symboltable, string
 			else
 			{
 				//store 0 as operand address
-				operandAddress = "0000";
-				//set error flag (undefined symbol) --TODO
-
+				operandAddress = "0";
+				
+				
+				//set error flag (undefined symbol)
+				
+				if (opcode != "4C")
+					return true;
 			}
 		}
 		objectcode += operandAddress;
@@ -164,7 +168,7 @@ void handle2(string line, opTab * opcodeTable, symbolTable * symboltable, string
 	{
 		if (opcode == WORD)
 		{
-			//convert consant to object code -- TODO
+			//convert consant to object code
 			//string constant = int_to_hex(stoi(operand));
 			string constant = ZeroPadNumber(stoi(operand), 6);
 			constant = int_to_hex(constant);
@@ -219,7 +223,7 @@ void handle2(string line, opTab * opcodeTable, symbolTable * symboltable, string
 		textrecord = "T00" + prevaddress + "__";
 	}
 	textrecord += objectcode;
-	
+	return false;
 }
 
 	
@@ -311,8 +315,8 @@ void pass2(ifstream & interFile, int & programLength, opTab * opcodeTable, symbo
 	ofstream objectFile;
 	objectFile.open("objfile.sic");
 
-	ofstream listingLine;
-	listingLine.open("listing.sic");
+	ofstream listingFile;
+	listingFile.open("listing.sic");
 
 	//Read source line
 	getline(interFile, sourceLine);
@@ -326,6 +330,7 @@ void pass2(ifstream & interFile, int & programLength, opTab * opcodeTable, symbo
 	string opcode = tokens->pop();
 	string operand = tokens->pop();
 	string prevaddress;
+	string objectcode = "";
 
 	string startingAddress;
 	string progLength;
@@ -333,7 +338,10 @@ void pass2(ifstream & interFile, int & programLength, opTab * opcodeTable, symbo
 
 	if (opcode == "START")
 	{
-		//write listing line -- TODO
+		//write listing line
+		listingFile << "ADDRESS		OBJECTCODE		SOURCE \t\t\t\t ERRORS" << endl;
+		listingFile << "---------------------------------------------------" << endl;
+		//listingFile << address << "\t\t" << opcode + operand << "\t\t" << line <<  "\t 0";
 
 		//read next inpu line
 		//Read source line
@@ -371,10 +379,10 @@ void pass2(ifstream & interFile, int & programLength, opTab * opcodeTable, symbo
 	{
 		if (!isComment(line))
 		{
-
-			handle2(line, opcodeTable, symboltable, prevaddress, address, opcode, operand, textrecord, objectFile, written);
-			//write listing line -- TODO
-
+			
+			bool error = handle2(line, opcodeTable, symboltable, prevaddress, address, opcode, operand, textrecord, objectFile, written, objectcode);
+			//write listing line
+			listingFile << address << "\t\t" << objectcode << "\t\t" << line << "\t";
 			//read next input line
 			getline(interFile, sourceLine);
 			getline(interFile, line);
@@ -386,6 +394,12 @@ void pass2(ifstream & interFile, int & programLength, opTab * opcodeTable, symbo
 			operand = tokens->pop();
 
 
+
+			if (error)
+				listingFile << "ERROR, SYMBOL NOT FOUND";
+			else
+				listingFile << "0";
+			listingFile << endl;
 		}
 	}
 
@@ -404,8 +418,9 @@ void pass2(ifstream & interFile, int & programLength, opTab * opcodeTable, symbo
 
 	//write end record to object file
 	objectFile << "E" << startingAddress;
-	//write last listing ine -- tTODO
 
+	//write last listing ine
+	listingFile << "END LISTING FILE" << endl;
 
 	objectFile.close();
 
