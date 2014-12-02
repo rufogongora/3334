@@ -18,14 +18,14 @@ using namespace std;
 void help()
 {
 	cout << "List of available commands: " << endl;
-	cout << "help:            List of available commands              0 parameters" << endl;
-	cout << "execute:         Not implemented yet                     0 parameters" << endl;
-	cout << "debug:           Not implemented yet                     0 parameters" << endl;
-	cout << "dump start end:  Not implemented yet                     2 parameters" << endl;
-	cout << "load filename:   Not implemented yet                     1 parameter" << endl;
-	cout << "assemble filename:Not implemented yet                    2 parameter" << endl;
-	cout << "directory:       lists all files in curr directory       0 parameters" << endl;
-	cout << "exit:            exits the SIC simulator                 0 parameters" << endl;
+	cout << "help:            List of available commands				0 parameters" << endl;
+	cout << "execute:         executes the program						0 parameters" << endl;
+	cout << "debug:           Not implemented yet						0 parameters" << endl;
+	cout << "dump start end:  Dumps the specified memory				2 parameters" << endl;
+	cout << "load filename:   Loads the specified object file to memory	1 parameter" << endl;
+	cout << "assemble filename: assembles the specified source file		2 parameter" << endl;
+	cout << "directory:       lists all files in curr directory			0 parameters" << endl;
+	cout << "exit:            exits the SIC simulator					0 parameters" << endl;
 }
 
 void directory(string OS)
@@ -41,8 +41,46 @@ void dump(optQ * optionQueue)
 	string par1 = optionQueue->pop();
 	string par2 = optionQueue->pop();
 
+
+	int x;
+	stringstream ss;
+	ss << hex << par1;
+	ss >> x;
+
+
+	int y;
+	ss.clear();
+	ss << hex << par2;
+	ss >> y;
+
+	int start = x;
+	int end = y;
+
 	if (par1 != "" && par2 != "")
-		cout << "Dump command with parameter 1: " << par1 << ", parameter 2: " << par2 << endl;
+	{
+		ADDRESS startAddr = start;
+		ADDRESS endAddr = end;
+		BYTE currentByte = 0;
+		cout << "Dumping memory from: " << hex << startAddr;
+		cout << " to " << hex << endAddr << endl;
+		int columns = 1;
+		for (ADDRESS i = startAddr; i < endAddr; i++)
+		{
+			GetMem(i, &currentByte, 0);
+			cout << setfill('0') << setw(2) << (int)currentByte;
+
+			if (columns > 10)
+			{
+				cout << endl;
+				columns = 0;
+			}
+			else
+				cout << " - ";
+
+			columns++;
+		}
+		cout << endl;
+	}
 	else
 		cout << "You need at least 2 parameters";
 }

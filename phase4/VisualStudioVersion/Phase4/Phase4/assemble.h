@@ -365,7 +365,7 @@ void pass2(ifstream & interFile, int & programLength, opTab * opcodeTable, symbo
 
 
 	//write header record to object file
-	objectFile << "H" <<uppercase<< progName << "__" << startingAddress << hex << atoi(progLength.c_str()) <<   endl;
+	objectFile << "H" <<uppercase<< progName << "_" << startingAddress << hex << atoi(progLength.c_str()) <<   endl;
 
 	//initialize first text record
 	textrecord += "T" + ZeroPadNumber(atoi(address.c_str()), 6) + "__";
@@ -461,7 +461,7 @@ void assemble(string filename, string interFileName)
 void load(string file)
 {
 	unsigned long addressVal = 0;
-	cout << "calling the load function on " << file << std::endl;
+	cout << "calling the load function on " << file << endl;
 	string line;
 	string startingAddr = "";
 	string programName = "";
@@ -470,10 +470,10 @@ void load(string file)
 
 	objectFile.open(file.c_str());
 	if (objectFile.is_open())
-		cout << "file opened succesfully." << std::endl;
+		cout << "file opened succesfully." << endl;
 	else
 	{
-		cout << "File could not be opened." << std::endl;
+		cout << "File could not be opened." << endl;
 		return;
 	}
 
@@ -521,10 +521,4 @@ void load(string file)
 		}
 	}
 	objectFile.close();
-}
-
-void execute(ADDRESS &start)
-{
-	ADDRESS location = start;
-	SICRun(&location, 0);
 }
